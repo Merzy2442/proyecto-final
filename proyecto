@@ -1,3 +1,4 @@
+
 import tkinter as tk
 
 asistentes = []
@@ -121,4 +122,3 @@ resultado = tk.Label(ventana, text="", bg="#E6E6FA", justify="left", wraplength=
 resultado.pack(padx=20, pady=10, anchor="w")
 
 ventana.mainloop()
-
