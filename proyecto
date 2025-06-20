@@ -44,38 +44,54 @@ def mostrar_lista():
 
 ventana = tk.Tk()
 ventana.title("Lista de Asistencia")
-ventana.config(bg="lightblue")
-ventana.geometry("550x500")
+ventana.config(bg="#E6E6FA")
+ventana.geometry("900x700")
 
-tk.Label(ventana, text="Nombre:").pack()
-entrada_nombre = tk.Entry(ventana)
-entrada_nombre.pack()
+tk.Label(ventana, text="Bienvenido a la Lista de Asistencia", font=("Arial", 20, "bold"), bg="#E6E6FA").pack(pady=15)
 
-tk.Label(ventana, text="Área:").pack()
-entrada_area = tk.Entry(ventana)
-entrada_area.pack()
+marco_contenido = tk.Frame(ventana, bg="#E6E6FA")
+marco_contenido.pack(fill="both", expand=True, padx=30, pady=20)
 
-tk.Label(ventana, text="Edad:").pack()
-entrada_edad = tk.Entry(ventana)
-entrada_edad.pack()
+marco_entradas = tk.Frame(marco_contenido, bg="#E6E6FA")
+marco_entradas.pack(side="left", fill="both", expand=True)
 
-tk.Label(ventana, text="Días que faltó:").pack()
-entrada_faltas = tk.Entry(ventana)
-entrada_faltas.pack()
+tk.Label(marco_entradas, text="Nombre:", bg="#E6E6FA", font=("Arial", 12)).pack(anchor="w")
+entrada_nombre = tk.Entry(marco_entradas, font=("Arial", 12))
+entrada_nombre.pack(fill="x")
 
-tk.Label(ventana, text="Número de celular:").pack()
-entrada_celular = tk.Entry(ventana)
-entrada_celular.pack()
+tk.Label(marco_entradas, text="Área:", bg="#E6E6FA", font=("Arial", 12)).pack(anchor="w")
+entrada_area = tk.Entry(marco_entradas, font=("Arial", 12))
+entrada_area.pack(fill="x")
 
-tk.Label(ventana, text="Dirección:").pack()
-entrada_direccion = tk.Entry(ventana)
-entrada_direccion.pack()
+tk.Label(marco_entradas, text="Edad:", bg="#E6E6FA", font=("Arial", 12)).pack(anchor="w")
+entrada_edad = tk.Entry(marco_entradas, font=("Arial", 12))
+entrada_edad.pack(fill="x")
 
-tk.Button(ventana, text="Agregar a la lista", command=agregar_asistente).pack()
-tk.Button(ventana, text="Mostrar lista de asistencia", command=mostrar_lista).pack()
-tk.Button(ventana, text="Salir de la app", command=ventana.quit).pack()
+tk.Label(marco_entradas, text="Días que faltó:", bg="#E6E6FA", font=("Arial", 12)).pack(anchor="w")
+entrada_faltas = tk.Entry(marco_entradas, font=("Arial", 12))
+entrada_faltas.pack(fill="x")
 
-etiqueta_resultado = tk.Label(ventana, text="", justify="left", bg="lightblue")
-etiqueta_resultado.pack()
+tk.Label(marco_entradas, text="Número de celular:", bg="#E6E6FA", font=("Arial", 12)).pack(anchor="w")
+entrada_celular = tk.Entry(marco_entradas, font=("Arial", 12))
+entrada_celular.pack(fill="x")
+
+tk.Label(marco_entradas, text="Dirección:", bg="#E6E6FA", font=("Arial", 12)).pack(anchor="w")
+entrada_direccion = tk.Entry(marco_entradas, font=("Arial", 12))
+entrada_direccion.pack(fill="x")
+
+marco_botones = tk.Frame(marco_contenido, bg="#E6E6FA")
+marco_botones.pack(side="right", fill="y", padx=20)
+
+tk.Button(marco_botones, text="Agregar a la lista", command=agregar_asistente,
+          bg="#D8BFD8", font=("Arial", 12, "bold"), height=2, width=20).pack(pady=10)
+tk.Button(marco_botones, text="Mostrar lista de asistencia", command=mostrar_lista,
+          bg="#D8BFD8", font=("Arial", 12, "bold"), height=2, width=20).pack(pady=10)
+tk.Button(marco_botones, text="Salir de la app", command=ventana.quit,
+          bg="#D8BFD8", font=("Arial", 12, "bold"), height=2, width=20).pack(pady=10)
+
+etiqueta_resultado = tk.Label(ventana, text="", justify="left", bg="#E6E6FA",
+                              wraplength=850, anchor="w", font=("Arial", 11))
+etiqueta_resultado.pack(pady=10, padx=30, anchor="w")
 
 ventana.mainloop()
+
