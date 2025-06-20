@@ -1,97 +1,124 @@
 import tkinter as tk
 
 asistentes = []
+datos_temporales = {
+    "nombre": "",
+    "area": "",
+    "edad": "",
+    "faltas": "",
+    "celular": "",
+    "direccion": "",
+    "turno": ""
+}
+
+def mostrar_campo(campo, etiqueta_texto):
+    for widget in marco_principal.winfo_children():
+        widget.destroy()
+
+    tk.Label(marco_principal, text=etiqueta_texto, font=("Arial", 14), bg="#F5F5F5").pack(pady=10)
+
+    if campo == "turno":
+        turno_var = tk.StringVar(value=datos_temporales["turno"])
+
+        tk.Radiobutton(marco_principal, text="Mañana", variable=turno_var, value="Mañana",
+                       bg="#F5F5F5", font=("Arial", 12)).pack(pady=5)
+        tk.Radiobutton(marco_principal, text="Tarde", variable=turno_var, value="Tarde",
+                       bg="#F5F5F5", font=("Arial", 12)).pack(pady=5)
+
+        def guardar_turno():
+            datos_temporales["turno"] = turno_var.get()
+            resultado.config(text=f"Turno {turno_var.get()} guardado.")
+
+        tk.Button(marco_principal, text="Guardar", command=guardar_turno,
+                  font=("Arial", 12), bg="#D8BFD8", width=15).pack(pady=10)
+
+    else:
+        entrada = tk.Entry(marco_principal, font=("Arial", 12))
+        entrada.pack(pady=5, ipadx=100, ipady=5)
+
+        def guardar():
+            valor = entrada.get().strip()
+            if campo in ["edad", "faltas"] and not valor.isdigit():
+                resultado.config(text="Edad y faltas deben ser números.")
+            elif not valor:
+                resultado.config(text="Por favor, escribe algo.")
+            else:
+                datos_temporales[campo] = valor
+                resultado.config(text=f"{campo.capitalize()} guardado.")
+
+        tk.Button(marco_principal, text="Guardar", command=guardar,
+                  font=("Arial", 12), bg="#D8BFD8", width=15).pack(pady=10)
 
 def agregar_asistente():
-    nombre = entrada_nombre.get().strip()
-    area = entrada_area.get().strip()
-    edad = entrada_edad.get().strip()
-    faltas = entrada_faltas.get().strip()
-    celular = entrada_celular.get().strip()
-    direccion = entrada_direccion.get().strip()
-
-    if nombre and area and edad.isdigit() and faltas.isdigit() and celular and direccion:
+    if all(datos_temporales.values()):
         asistente = {
-            "nombre": nombre,
-            "area": area,
-            "edad": int(edad),
-            "faltas": int(faltas),
-            "celular": celular,
-            "direccion": direccion
+            "nombre": datos_temporales["nombre"],
+            "area": datos_temporales["area"],
+            "edad": int(datos_temporales["edad"]),
+            "faltas": int(datos_temporales["faltas"]),
+            "celular": datos_temporales["celular"],
+            "direccion": datos_temporales["direccion"],
+            "turno": datos_temporales["turno"]
         }
         asistentes.append(asistente)
-        etiqueta_resultado.config(text=f"{nombre} fue agregado a la lista.")
-        entrada_nombre.delete(0, tk.END)
-        entrada_area.delete(0, tk.END)
-        entrada_edad.delete(0, tk.END)
-        entrada_faltas.delete(0, tk.END)
-        entrada_celular.delete(0, tk.END)
-        entrada_direccion.delete(0, tk.END)
+        for k in datos_temporales:
+            datos_temporales[k] = ""
+        resultado.config(text="Asistente agregado exitosamente.")
     else:
-        etiqueta_resultado.config(text="Por favor, completa todos los campos correctamente.")
+        resultado.config(text="Faltan campos por llenar.")
 
 def mostrar_lista():
     if asistentes:
-        lista = ""
+        texto = ""
         for a in asistentes:
-            lista += (
+            texto += (
                 f"Nombre: {a['nombre']}, Área: {a['area']}, Edad: {a['edad']}, "
-                f"Faltas: {a['faltas']}, Celular: {a['celular']}, Dirección: {a['direccion']}\n"
+                f"Faltas: {a['faltas']}, Celular: {a['celular']}, Dirección: {a['direccion']}, "
+                f"Turno: {a['turno']}\n"
             )
-        etiqueta_resultado.config(text=lista)
+        resultado.config(text=texto)
     else:
-        etiqueta_resultado.config(text="No hay asistentes en la lista.")
+        resultado.config(text="No hay asistentes en la lista.")
 
 ventana = tk.Tk()
-ventana.title("Lista de Asistencia")
+ventana.title("Registro de Asistentes")
+ventana.geometry("1000x600")
 ventana.config(bg="#E6E6FA")
-ventana.geometry("900x700")
 
-tk.Label(ventana, text="Bienvenido a la Lista de Asistencia", font=("Arial", 20, "bold"), bg="#E6E6FA").pack(pady=15)
+barra_lateral = tk.Frame(ventana, bg="#DDA0DD", width=200)
+barra_lateral.pack(side="left", fill="y")
 
-marco_contenido = tk.Frame(ventana, bg="#E6E6FA")
-marco_contenido.pack(fill="both", expand=True, padx=30, pady=20)
+opciones = [
+    ("Nombre", "nombre", "Escribe tu nombre:"),
+    ("Área", "area", "¿A qué área perteneces?"),
+    ("Edad", "edad", "¿Cuál es tu edad?"),
+    ("Faltas", "faltas", "¿Cuántas faltas tienes?"),
+    ("Celular", "celular", "¿Cuál es tu número de celular?"),
+    ("Dirección", "direccion", "¿Cuál es tu dirección?"),
+    ("Turno", "turno", "Selecciona tu turno:")
+]
 
-marco_entradas = tk.Frame(marco_contenido, bg="#E6E6FA")
-marco_entradas.pack(side="left", fill="both", expand=True)
+for texto, clave, etiqueta in opciones:
+    tk.Button(barra_lateral, text=texto, font=("Arial", 11), bg="#BA55D3", fg="white",
+              command=lambda c=clave, e=etiqueta: mostrar_campo(c, e)).pack(pady=10, fill="x", padx=10)
 
-tk.Label(marco_entradas, text="Nombre:", bg="#E6E6FA", font=("Arial", 12)).pack(anchor="w")
-entrada_nombre = tk.Entry(marco_entradas, font=("Arial", 12))
-entrada_nombre.pack(fill="x")
+tk.Button(barra_lateral, text="Agregar a la lista", font=("Arial", 11), bg="#6A5ACD", fg="white",
+          command=agregar_asistente).pack(pady=20, fill="x", padx=10)
 
-tk.Label(marco_entradas, text="Área:", bg="#E6E6FA", font=("Arial", 12)).pack(anchor="w")
-entrada_area = tk.Entry(marco_entradas, font=("Arial", 12))
-entrada_area.pack(fill="x")
+tk.Button(barra_lateral, text="Ver lista", font=("Arial", 11), bg="#483D8B", fg="white",
+          command=mostrar_lista).pack(pady=10, fill="x", padx=10)
 
-tk.Label(marco_entradas, text="Edad:", bg="#E6E6FA", font=("Arial", 12)).pack(anchor="w")
-entrada_edad = tk.Entry(marco_entradas, font=("Arial", 12))
-entrada_edad.pack(fill="x")
+tk.Button(barra_lateral, text="Salir", font=("Arial", 11), bg="#8B0000", fg="white",
+          command=ventana.quit).pack(pady=10, fill="x", padx=10)
 
-tk.Label(marco_entradas, text="Días que faltó:", bg="#E6E6FA", font=("Arial", 12)).pack(anchor="w")
-entrada_faltas = tk.Entry(marco_entradas, font=("Arial", 12))
-entrada_faltas.pack(fill="x")
+marco_principal = tk.Frame(ventana, bg="#F5F5F5")
+marco_principal.pack(side="right", expand=True, fill="both")
 
-tk.Label(marco_entradas, text="Número de celular:", bg="#E6E6FA", font=("Arial", 12)).pack(anchor="w")
-entrada_celular = tk.Entry(marco_entradas, font=("Arial", 12))
-entrada_celular.pack(fill="x")
+tk.Label(marco_principal, text="Bienvenido al Registro", font=("Arial", 20, "bold"),
+         bg="#F5F5F5").pack(pady=40)
 
-tk.Label(marco_entradas, text="Dirección:", bg="#E6E6FA", font=("Arial", 12)).pack(anchor="w")
-entrada_direccion = tk.Entry(marco_entradas, font=("Arial", 12))
-entrada_direccion.pack(fill="x")
-
-marco_botones = tk.Frame(marco_contenido, bg="#E6E6FA")
-marco_botones.pack(side="right", fill="y", padx=20)
-
-tk.Button(marco_botones, text="Agregar a la lista", command=agregar_asistente,
-          bg="#D8BFD8", font=("Arial", 12, "bold"), height=2, width=20).pack(pady=10)
-tk.Button(marco_botones, text="Mostrar lista de asistencia", command=mostrar_lista,
-          bg="#D8BFD8", font=("Arial", 12, "bold"), height=2, width=20).pack(pady=10)
-tk.Button(marco_botones, text="Salir de la app", command=ventana.quit,
-          bg="#D8BFD8", font=("Arial", 12, "bold"), height=2, width=20).pack(pady=10)
-
-etiqueta_resultado = tk.Label(ventana, text="", justify="left", bg="#E6E6FA",
-                              wraplength=850, anchor="w", font=("Arial", 11))
-etiqueta_resultado.pack(pady=10, padx=30, anchor="w")
+resultado = tk.Label(ventana, text="", bg="#E6E6FA", justify="left", wraplength=700, font=("Arial", 11))
+resultado.pack(padx=20, pady=10, anchor="w")
 
 ventana.mainloop()
 
