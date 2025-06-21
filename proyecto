@@ -1,151 +1,203 @@
 
 import tkinter as tk
+from datetime import datetime
 import re
 
-asistentes = []
-datos_temporales = {
-    "nombre": "",
-    "area": "",
-    "edad": "",
-    "faltas": "",
-    "celular": "",
-    "direccion": "",
-    "turno": "",
-    "entrada": "",
-    "salida": ""
-}
+class Asistente:
+    def __init__(self, nombre, area, edad, faltas, celular, direccion, turno, entrada, salida):
+        self.nombre = nombre
+        self.area = area
+        self.edad = int(edad)
+        self.faltas = int(faltas)
+        self.celular = celular
+        self.direccion = direccion
+        self.turno = turno
+        self.entrada = entrada
+        self.salida = salida
 
-def validar_hora(hora):
-    return re.match(r"^(?:[01]\d|2[0-3]):[0-5]\d$", hora) is not None
+    def tipo_falta(self):
+        return "Mayor" if self.faltas >= 5 else "Menor"
 
-def mostrar_campo(campo, etiqueta_texto):
-    for widget in marco_principal.winfo_children():
-        widget.destroy()
+    def vacaciones_restantes(self):
+        return max(0, 15 - self.faltas)
 
-    tk.Label(marco_principal, text=etiqueta_texto, font=("Arial", 14), bg="#FDF5F5").pack(pady=10)
+    def horas_trabajadas(self):
+        formato = "%H:%M"
+        try:
+            entrada_dt = datetime.strptime(self.entrada, formato)
+            salida_dt = datetime.strptime(self.salida, formato)
+            diferencia = salida_dt - entrada_dt
+            horas = diferencia.total_seconds() / 3600
+            return max(0, horas)
+        except:
+            return 0
 
-    if campo == "turno":
-        turno_var = tk.StringVar(value=datos_temporales["turno"])
-        tk.Radiobutton(marco_principal, text="Mañana", variable=turno_var, value="Mañana",
-                       bg="#FDF5F5", font=("Arial", 12)).pack(pady=5)
-        tk.Radiobutton(marco_principal, text="Tarde", variable=turno_var, value="Tarde",
-                       bg="#FDF5F5", font=("Arial", 12)).pack(pady=5)
+    def calcular_paga(self):
+        paga_por_hora = 80 if self.turno == "Mañana" else 100
+        horas = self.horas_trabajadas()
+        descuento = self.faltas * 150
+        return max(0, (horas * paga_por_hora) - descuento)
 
-        def guardar_turno():
-            datos_temporales["turno"] = turno_var.get()
-            resultado.config(text=f"Turno {turno_var.get()} guardado.")
-
-        tk.Button(marco_principal, text="Guardar", command=guardar_turno,
-                  font=("Arial", 12), bg="#D8BFD8", width=15).pack(pady=10)
-
-    elif campo in ["entrada", "salida"]:
-        entrada = tk.Entry(marco_principal, font=("Arial", 12))
-        entrada.pack(pady=5, ipadx=100, ipady=5)
-        entrada.insert(0, datos_temporales[campo])
-
-        def guardar_hora():
-            valor = entrada.get().strip()
-            if not validar_hora(valor):
-                resultado.config(text="Formato incorrecto, usa HH:MM (24h). Ejemplo: 08:30")
-            else:
-                datos_temporales[campo] = valor
-                resultado.config(text=f"{campo.capitalize()} guardada: {valor}")
-
-        tk.Button(marco_principal, text="Guardar", command=guardar_hora,
-                  font=("Arial", 12), bg="#D8BFD8", width=15).pack(pady=10)
-
-    else:
-        entrada = tk.Entry(marco_principal, font=("Arial", 12))
-        entrada.pack(pady=5, ipadx=100, ipady=5)
-        entrada.insert(0, datos_temporales[campo])
-
-        def guardar():
-            valor = entrada.get().strip()
-            if campo in ["edad", "faltas"] and not valor.isdigit():
-                resultado.config(text="Edad y faltas deben ser números.")
-            elif not valor:
-                resultado.config(text="Por favor, escribe algo.")
-            else:
-                datos_temporales[campo] = valor
-                resultado.config(text=f"{campo.capitalize()} guardado.")
-
-        tk.Button(marco_principal, text="Guardar", command=guardar,
-                  font=("Arial", 12), bg="#D8BFD8", width=15).pack(pady=10)
-
-def agregar_asistente():
-    if all(datos_temporales.values()):
-        asistente = {
-            "nombre": datos_temporales["nombre"],
-            "area": datos_temporales["area"],
-            "edad": int(datos_temporales["edad"]),
-            "faltas": int(datos_temporales["faltas"]),
-            "celular": datos_temporales["celular"],
-            "direccion": datos_temporales["direccion"],
-            "turno": datos_temporales["turno"],
-            "entrada": datos_temporales["entrada"],
-            "salida": datos_temporales["salida"]
+class RegistroApp:
+    def __init__(self):
+        self.asistentes = []
+        self.datos_temporales = {
+            "nombre": "", "area": "", "edad": "", "faltas": "", "celular": "",
+            "direccion": "", "turno": "", "entrada": "", "salida": ""
         }
-        asistentes.append(asistente)
-        for k in datos_temporales:
-            datos_temporales[k] = ""
-        resultado.config(text="Asistente agregado exitosamente.")
-    else:
-        resultado.config(text="Faltan campos por llenar.")
 
-def mostrar_lista():
-    if asistentes:
-        texto = ""
-        for a in asistentes:
-            texto += (
-                f"Nombre: {a['nombre']}, Área: {a['area']}, Edad: {a['edad']}, "
-                f"Faltas: {a['faltas']}, Celular: {a['celular']}, Dirección: {a['direccion']}, "
-                f"Turno: {a['turno']}, Entrada: {a['entrada']}, Salida: {a['salida']}\n"
+        self.ventana = tk.Tk()
+        self.ventana.title("Registro de Asistentes")
+        self.ventana.geometry("1300x700")
+        self.ventana.config(bg="#FDF5F5")
+
+        self.barra_lateral = tk.Frame(self.ventana, bg="#DDA0DD", width=200)
+        self.barra_lateral.pack(side="left", fill="y")
+
+        self.marco_principal = tk.Frame(self.ventana, bg="#FDF5F5")
+        self.marco_principal.pack(side="right", expand=True, fill="both")
+
+        opciones = [
+            ("Nombre", "nombre", "Escribe tu nombre:"),
+            ("Área", "area", "¿A qué área perteneces?"),
+            ("Edad", "edad", "¿Cuál es tu edad?"),
+            ("Faltas", "faltas", "¿Cuántas faltas tienes?"),
+            ("Celular", "celular", "¿Cuál es tu número de celular?"),
+            ("Dirección", "direccion", "¿Cuál es tu dirección?"),
+            ("Turno", "turno", "Selecciona tu turno:"),
+            ("Entrada", "entrada", "¿A qué hora entras? (HH:MM)"),
+            ("Salida", "salida", "¿A qué hora sales? (HH:MM)")
+        ]
+
+        for texto, clave, etiqueta in opciones:
+            tk.Button(self.barra_lateral, text=texto, font=("Arial", 11), bg="#BA55D3", fg="white",
+                      command=lambda c=clave, e=etiqueta: self.mostrar_campo(c, e)).pack(pady=10, fill="x", padx=10)
+
+        tk.Button(self.barra_lateral, text="Agregar a la lista", font=("Arial", 11), bg="#A052AA", fg="white",
+                  command=self.agregar_asistente).pack(pady=20, fill="x", padx=10)
+
+        tk.Button(self.barra_lateral, text="Ver lista", font=("Arial", 11), bg="#7A3E78", fg="white",
+                  command=self.mostrar_lista).pack(pady=10, fill="x", padx=10)
+
+        tk.Button(self.barra_lateral, text="Salir", font=("Arial", 11), bg="#8B0000", fg="white",
+                  command=self.ventana.quit).pack(pady=10, fill="x", padx=10)
+
+        tk.Label(self.marco_principal, text="Bienvenido al Registro", font=("Arial", 20, "bold"),
+                 bg="#FDF5F5").pack(pady=40)
+
+        self.resultado = tk.Label(self.ventana, text="", bg="#FDF5F5", justify="left", wraplength=1000,
+                                  font=("Arial", 11))
+        self.resultado.pack(padx=20, pady=10, anchor="w")
+
+        self.ventana.mainloop()
+
+    def validar_hora(self, hora):
+        return re.match(r"^(?:[01]\d|2[0-3]):[0-5]\d$", hora) is not None
+
+    def mostrar_campo(self, campo, etiqueta_texto):
+        for widget in self.marco_principal.winfo_children():
+            widget.destroy()
+
+        tk.Label(self.marco_principal, text=etiqueta_texto, font=("Arial", 14), bg="#FDF5F5").pack(pady=10)
+
+        if campo == "turno":
+            turno_var = tk.StringVar(value=self.datos_temporales["turno"])
+            tk.Radiobutton(self.marco_principal, text="Mañana", variable=turno_var, value="Mañana",
+                           bg="#FDF5F5", font=("Arial", 12)).pack(pady=5)
+            tk.Radiobutton(self.marco_principal, text="Tarde", variable=turno_var, value="Tarde",
+                           bg="#FDF5F5", font=("Arial", 12)).pack(pady=5)
+
+            def guardar_turno():
+                self.datos_temporales["turno"] = turno_var.get()
+                self.resultado.config(text=f"Turno {turno_var.get()} guardado.")
+
+            tk.Button(self.marco_principal, text="Guardar", command=guardar_turno,
+                      font=("Arial", 12), bg="#D8BFD8", width=15).pack(pady=10)
+
+        elif campo in ["entrada", "salida"]:
+            entrada = tk.Entry(self.marco_principal, font=("Arial", 12))
+            entrada.pack(pady=5, ipadx=100, ipady=5)
+            entrada.insert(0, self.datos_temporales[campo])
+
+            def guardar_hora():
+                valor = entrada.get().strip()
+                if not self.validar_hora(valor):
+                    self.resultado.config(text="Formato incorrecto, usa HH:MM (24h). Ejemplo: 08:30")
+                else:
+                    self.datos_temporales[campo] = valor
+                    self.resultado.config(text=f"{campo.capitalize()} guardada: {valor}")
+
+            tk.Button(self.marco_principal, text="Guardar", command=guardar_hora,
+                      font=("Arial", 12), bg="#D8BFD8", width=15).pack(pady=10)
+
+        else:
+            entrada = tk.Entry(self.marco_principal, font=("Arial", 12))
+            entrada.pack(pady=5, ipadx=100, ipady=5)
+            entrada.insert(0, self.datos_temporales[campo])
+
+            def guardar():
+                valor = entrada.get().strip()
+                if campo in ["edad", "faltas"] and not valor.isdigit():
+                    self.resultado.config(text="Edad y faltas deben ser números.")
+                elif not valor:
+                    self.resultado.config(text="Por favor, escribe algo.")
+                else:
+                    self.datos_temporales[campo] = valor
+                    self.resultado.config(text=f"{campo.capitalize()} guardado.")
+
+            tk.Button(self.marco_principal, text="Guardar", command=guardar,
+                      font=("Arial", 12), bg="#D8BFD8", width=15).pack(pady=10)
+
+    def agregar_asistente(self):
+        if all(self.datos_temporales.values()):
+            a = self.datos_temporales
+            asistente = Asistente(
+                a["nombre"], a["area"], a["edad"], a["faltas"], a["celular"],
+                a["direccion"], a["turno"], a["entrada"], a["salida"]
             )
-        resultado.config(text=texto)
-    else:
-        resultado.config(text="No hay asistentes en la lista.")
+            self.asistentes.append(asistente)
+            for k in self.datos_temporales:
+                self.datos_temporales[k] = ""
+            self.resultado.config(text="Asistente agregado exitosamente.")
+        else:
+            self.resultado.config(text="Faltan campos por llenar.")
 
-ventana = tk.Tk()
-ventana.title("Registro de Asistentes")
-ventana.geometry("1300x700")
-ventana.config(bg="#FDF5F5")
+    def mostrar_lista(self):
+        for widget in self.marco_principal.winfo_children():
+            widget.destroy()
 
-barra_lateral = tk.Frame(ventana, bg="#DDA0DD", width=200)
-barra_lateral.pack(side="left", fill="y")
+        if self.asistentes:
+            contenedor = tk.Frame(self.marco_principal, bg="#FDF5F5")
+            contenedor.pack(expand=True, fill="both", padx=20, pady=20)
 
-opciones = [
-    ("Nombre", "nombre", "Escribe tu nombre:"),
-    ("Área", "area", "¿A qué área perteneces?"),
-    ("Edad", "edad", "¿Cuál es tu edad?"),
-    ("Faltas", "faltas", "¿Cuántas faltas tienes?"),
-    ("Celular", "celular", "¿Cuál es tu número de celular?"),
-    ("Dirección", "direccion", "¿Cuál es tu dirección?"),
-    ("Turno", "turno", "Selecciona tu turno:"),
-    ("Entrada", "entrada", "¿A qué hora entras? (HH:MM)"),
-    ("Salida", "salida", "¿A qué hora sales? (HH:MM)")
-]
+            scrollbar = tk.Scrollbar(contenedor)
+            scrollbar.pack(side="right", fill="y")
 
-for texto, clave, etiqueta in opciones:
-    tk.Button(barra_lateral, text=texto, font=("Arial", 11), bg="#BA55D3", fg="white",
-              command=lambda c=clave, e=etiqueta: mostrar_campo(c, e)).pack(pady=10, fill="x", padx=10)
+            texto = tk.Text(contenedor, wrap="word", yscrollcommand=scrollbar.set, font=("Arial", 11), width=110, height=25)
+            texto.pack(side="left", fill="both", expand=True)
 
-tk.Button(barra_lateral, text="Agregar a la lista", font=("Arial", 11), bg="#A052AA", fg="white",
-          command=agregar_asistente).pack(pady=20, fill="x", padx=10)
+            scrollbar.config(command=texto.yview)
 
-tk.Button(barra_lateral, text="Ver lista", font=("Arial", 11), bg="#7A3E78", fg="white",
-          command=mostrar_lista).pack(pady=10, fill="x", padx=10)
+            for a in self.asistentes:
+                texto.insert(tk.END,
+                    f"Nombre: {a.nombre}\n"
+                    f"Área: {a.area}\n"
+                    f"Edad: {a.edad}\n"
+                    f"Faltas: {a.faltas} ({a.tipo_falta()})\n"
+                    f"Celular: {a.celular}\n"
+                    f"Dirección: {a.direccion}\n"
+                    f"Turno: {a.turno}\n"
+                    f"Entrada: {a.entrada}\n"
+                    f"Salida: {a.salida}\n"
+                    f"Vacaciones restantes: {a.vacaciones_restantes()} días\n"
+                    f"Horas trabajadas: {a.horas_trabajadas():.2f}\n"
+                    f"Paga estimada: ${a.calcular_paga():,.2f} MXN\n"
+                    + "-" * 80 + "\n"
+                )
+            texto.config(state="disabled")
+        else:
+            tk.Label(self.marco_principal, text="No hay asistentes en la lista.",
+                     font=("Arial", 14), bg="#FDF5F5").pack(pady=20)
 
-tk.Button(barra_lateral, text="Salir", font=("Arial", 11), bg="#8B0000", fg="white",
-          command=ventana.quit).pack(pady=10, fill="x", padx=10)
-
-marco_principal = tk.Frame(ventana, bg="#FDF5F5")
-marco_principal.pack(side="right", expand=True, fill="both")
-
-tk.Label(marco_principal, text="Bienvenido al Registro", font=("Arial", 20, "bold"),
-         bg="#FDF5F5").pack(pady=40)
-
-resultado = tk.Label(ventana, text="", bg="#FDF5F5", justify="left", wraplength=1000, font=("Arial", 11))
-resultado.pack(padx=20, pady=10, anchor="w")
-
-ventana.mainloop()
+RegistroApp()
 
